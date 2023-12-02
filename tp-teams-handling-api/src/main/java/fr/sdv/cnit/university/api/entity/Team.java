@@ -1,4 +1,4 @@
-package fr.sdv.cnit.university.api.model;
+package fr.sdv.cnit.university.api.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

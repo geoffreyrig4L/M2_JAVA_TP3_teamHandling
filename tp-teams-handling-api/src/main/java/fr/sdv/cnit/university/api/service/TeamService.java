@@ -1,12 +1,13 @@
 package fr.sdv.cnit.university.api.service;
 
-import fr.sdv.cnit.university.api.model.Team;
-import fr.sdv.cnit.university.api.repository.TeamRepository;
+import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import fr.sdv.cnit.university.api.entity.Team;
+import fr.sdv.cnit.university.api.repository.TeamRepository;
 
 @Service
 public class TeamService {
@@ -20,5 +21,33 @@ public class TeamService {
 
     public List<Team> getAllTeams() {
         return teamRepository.findAll();
+    }
+
+    public Optional<Team> get(final Long id) {
+        return teamRepository.findById(id);
+    }
+
+    public boolean save(Team team) {
+        Team savedTeam = teamRepository.save(team);
+        return savedTeam != null ? true : false;
+    }
+
+    public Team update(final Long id, Team modified) {
+        Optional<Team> teamOptional = this.get(id);
+        if (teamOptional.isPresent()) {
+            Team team = teamOptional.get();
+            if (team.getName() != null) {
+                team.setName(modified.getName());
+            }
+            if (team.getSlogan() != null) {
+                team.setSlogan(modified.getSlogan());
+            }
+            return teamRepository.save(team);
+        }
+        return null;
+    }
+
+    public void delete(Long id) {
+        teamRepository.deleteById(id);
     }
 }
