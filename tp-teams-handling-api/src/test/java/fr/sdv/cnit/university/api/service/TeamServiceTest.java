@@ -1,32 +1,26 @@
 package fr.sdv.cnit.university.api.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.web.servlet.MockMvc;
 
-import fr.sdv.cnit.university.api.H2TestJpaConfig;
 import fr.sdv.cnit.university.api.entity.Team;
-import fr.sdv.cnit.university.api.repository.TeamRepository;
 
 @SpringBootTest
-@AutoConfigureMockMvc
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-class TeamServiceTest implements H2TestJpaConfig {
+class TeamServiceTest {
 
 	@Autowired
-	public MockMvc mockMvc;
-
-	@Autowired
-	public TeamRepository teamRepository;
-
-	@InjectMocks
 	private TeamService teamService;
 
 	@BeforeEach
@@ -41,36 +35,81 @@ class TeamServiceTest implements H2TestJpaConfig {
 		team.setId(id);
 		team.setName(nom);
 		team.setSlogan(slogan);
-		teamRepository.save(team);
+		teamService.save(team);
 	}
 
 	@Test
-	void testGetAllTeams() {
-		List<Team> teams = teamRepository.findAll();
-		for (Team team : teams) {
-			System.out.println(team.getName());
-			System.out.println(team.getSlogan());
-			System.out.println(team.getId());
-		}
+	void shouldGetAllTeams() {
+		List<Team> teams = teamService.getAllTeams();
+
+		assertThat(teams).hasSize(3);
+
+		assertThat(teams.get(0))
+				.extracting(Team::getName, Team::getSlogan)
+				.containsExactly("Benfica", "Pas de concu");
+
+		assertThat(teams.get(1))
+				.extracting(Team::getName, Team::getSlogan)
+				.containsExactly("Brighton", "La victoire ou la mort !");
+
+		assertThat(teams.get(2))
+				.extracting(Team::getName, Team::getSlogan)
+				.containsExactly("Arsenal", "Perdre, c'est quoi ?");
+	}
+
+	@ParameterizedTest
+	@MethodSource("provideTeamsAttribute")
+	void shouldGetTeam(Long id, String expectedName) {
+		Team team = teamService.get(id).orElse(null);
+		assertThat(team)
+				.isNotNull()
+				.extracting(Team::getName)
+				.isEqualTo(expectedName);
+	}
+
+	private static Stream<Arguments> provideTeamsAttribute() {
+		return Stream.of(
+				Arguments.of(1L, "Benfica"),
+				Arguments.of(2L, "Brighton"),
+				Arguments.of(3L, "Arsenal"));
 	}
 
 	@Test
-	void testGet() {
+	void shouldSaveNewTeam() {
+		Team team = new Team();
+		team.setId(4L);
+		team.setName("Inter Milan");
+		team.setSlogan("Aucune défaite dans notre palmarès");
+		teamService.save(team);
 
+		Team result = teamService.get(4L).orElse(null);
+		assertThat(result)
+				.isNotNull()
+				.extracting(Team::getName, Team::getSlogan)
+				.containsExactly("Inter Milan", "Aucune défaite dans notre palmarès");
 	}
 
 	@Test
-	void testSave() {
+	void shouldUpdateTeam() {
+		Team teamToUpdate = teamService.get(1L).orElse(null);
+		assertThat(teamToUpdate)
+				.isNotNull();
 
+		teamToUpdate.setName("FC Barcelone");
+		teamToUpdate.setSlogan("Objectif : balle en feu");
+
+		Team result = teamService.save(teamToUpdate);
+		assertThat(result)
+				.isNotNull()
+				.extracting(Team::getId, Team::getName, Team::getSlogan)
+				.containsExactly(1L, "FC Barcelone", "Objectif : balle en feu");
 	}
 
 	@Test
-	void testUpdate() {
-
-	}
-
-	@Test
-	void testDelete() {
-
+	void shouldDeleteTeam() {
+		teamService.delete(4L);
+		Team result = teamService.get(4L).orElse(null);
+		assertThat(result)
+				.isNull();
 	}
 }

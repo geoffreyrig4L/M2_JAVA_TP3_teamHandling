@@ -5,15 +5,8 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
+import fr.sdv.cnit.university.api.dto.TeamDto;
 import fr.sdv.cnit.university.api.entity.Team;
 import fr.sdv.cnit.university.api.service.TeamService;
 
@@ -29,35 +22,32 @@ public class TeamController {
     }
 
     @GetMapping
-    public List<Team> getAllTeams() {
-        return teamService.getAllTeams();
+    public List<TeamDto> getAllTeams() {
+        List<Team> teams = teamService.getAllTeams();
+        return TeamDto.toDtoList(teams);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Team> get(@PathVariable("id") final Long id) {
-        Optional<Team> team = teamService.get(id);
-        if (team.isPresent()) {
-            return ResponseEntity.ok(team.get());
+    public ResponseEntity<TeamDto> get(@PathVariable("id") final Long id) {
+        Optional<Team> teamOptional = teamService.get(id);
+        if (teamOptional.isPresent()) {
+            return ResponseEntity.ok(TeamDto.fromEntity(teamOptional.get()));
         }
         return ResponseEntity.notFound().build();
     }
 
     @PostMapping
-    public ResponseEntity<String> create(@RequestBody Team team) {
-        boolean isCreated = teamService.save(team);
-        if (isCreated) {
-            return ResponseEntity.ok().body("L'équipe a été créée.");
-        }
-        return ResponseEntity.badRequest().build();
+    public ResponseEntity<TeamDto> create(@RequestBody TeamDto teamDtoToCreate) {
+        Team teamToCreate = TeamDto.toEntity(teamDtoToCreate);
+        Team createdTeam = teamService.save(teamToCreate);
+        return ResponseEntity.ok(TeamDto.fromEntity(createdTeam));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Team> create(@PathVariable("id") final Long id, @RequestBody Team teamModified) {
-        Team team = teamService.update(id, teamModified);
-        if (team != null) {
-            return ResponseEntity.ok(team);
-        }
-        return ResponseEntity.badRequest().build();
+    public ResponseEntity<TeamDto> update(@PathVariable("id") final Long id, @RequestBody TeamDto teamDtoModified) {
+        Team teamModified = TeamDto.toEntity(teamDtoModified);
+        Team updatedTeam = teamService.update(id, teamModified);
+        return ResponseEntity.ok(TeamDto.fromEntity(updatedTeam));
     }
 
     @DeleteMapping("/{id}")

@@ -27,9 +27,8 @@ public class TeamService {
         return teamRepository.findById(id);
     }
 
-    public boolean save(Team team) {
-        Team savedTeam = teamRepository.save(team);
-        return savedTeam != null ? true : false;
+    public Team save(Team team) {
+        return teamRepository.save(team);
     }
 
     public Team update(final Long id, Team modified) {
