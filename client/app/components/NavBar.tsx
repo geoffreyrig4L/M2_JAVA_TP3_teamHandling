@@ -19,10 +19,10 @@ const NavBar = (): JSX.Element => {
   }, [])
 
   return (
-    <nav className="absolute left-0 top-0 flex flex-col bg-menu-color w-[12%] h-full text-text-menu p-12 items-start space-y-6 border-r-[10px] border-secondary-color">
+    <nav className="absolute left-0 top-0 flex flex-col bg-menu-color w-[12%] min-w-[250px] h-full text-text-menu p-12 items-start space-y-6 border-r-[10px] border-secondary-color">
       <h1 className="place-self-center text-secondary-color text-xl font-[500]">Équipes</h1>
       {teams.map((team: Team) => (
-        <Link className="hover:scale-[110%] transition-transform" href="/createTeam">
+        <Link key={team.id} className="hover:scale-[110%] transition-transform" href={`/teams/${team.id}`}>
           <p>{team.name}</p>
         </Link>
       ))}

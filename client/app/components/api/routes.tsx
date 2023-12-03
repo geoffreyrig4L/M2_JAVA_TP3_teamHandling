@@ -5,3 +5,11 @@ import { api } from "./api"
 export const getAllTeams = async (): Promise<AxiosResponse<Team[]>> => {
   return await api().get("/teams")
 }
+
+export const getTeam = async (teamId: number): Promise<AxiosResponse<Team>> => {
+  return await api().get(`/teams/${teamId}`)
+}
+
+export const addTeam = async (team: Team): Promise<AxiosResponse<Team>> => {
+  return await api().post("/teams", team)
+}
