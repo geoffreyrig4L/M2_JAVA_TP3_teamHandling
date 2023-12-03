@@ -14,6 +14,7 @@ import fr.sdv.cnit.university.api.service.TeamService;
 
 @RestController
 @RequestMapping("/teams")
+@CrossOrigin
 public class TeamController {
 
     private final TeamService teamService;
