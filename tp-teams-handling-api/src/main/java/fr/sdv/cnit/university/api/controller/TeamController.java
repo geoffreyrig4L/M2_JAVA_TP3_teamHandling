@@ -4,10 +4,12 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import fr.sdv.cnit.university.api.dto.TeamDto;
 import fr.sdv.cnit.university.api.entity.Team;
+import fr.sdv.cnit.university.api.service.TeamInvalidException;
 import fr.sdv.cnit.university.api.service.TeamService;
 
 @RestController
@@ -41,6 +43,11 @@ public class TeamController {
         Team teamToCreate = TeamDto.toEntity(teamDtoToCreate);
         Team createdTeam = teamService.save(teamToCreate);
         return ResponseEntity.ok(TeamDto.fromEntity(createdTeam));
+    }
+
+    @ExceptionHandler(TeamInvalidException.class)
+    public ResponseEntity<String> handleException(TeamInvalidException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: " + exception.getMessage());
     }
 
     @PutMapping("/{id}")

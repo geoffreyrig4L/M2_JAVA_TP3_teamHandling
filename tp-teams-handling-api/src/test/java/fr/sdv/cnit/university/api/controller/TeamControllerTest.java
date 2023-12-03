@@ -3,6 +3,9 @@ package fr.sdv.cnit.university.api.controller;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.standaloneSetup;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.stream.Stream;
 
@@ -17,6 +20,7 @@ import org.springframework.test.annotation.DirtiesContext;
 
 import fr.sdv.cnit.university.api.entity.Team;
 import fr.sdv.cnit.university.api.repository.TeamRepository;
+import fr.sdv.cnit.university.api.service.TeamInvalidException;
 import fr.sdv.cnit.university.api.service.TeamService;
 import io.restassured.http.ContentType;
 
@@ -87,6 +91,23 @@ class TeamControllerTest {
     }
 
     @Test
+    void shouldPostTeam() {
+        given()
+                .body("{\"name\":\"Inter Milan\", \"slogan\":\"Aucune défaite dans notre palmarès\"}")
+                .contentType(ContentType.JSON)
+                .when()
+                .post("/teams")
+                .then()
+                .statusCode(200);
+        given()
+                .when()
+                .get("/teams/4")
+                .then()
+                .statusCode(200)
+                .body("name", equalTo("Inter Milan"));
+    }
+
+    @Test
     void shouldPutTeam() {
         given()
                 .body("{\"id\":2,\"name\":\"Manchester City\"}")
@@ -113,5 +134,19 @@ class TeamControllerTest {
                 .delete("/teams/3")
                 .then()
                 .statusCode(200);
+    }
+
+    @Test
+    void shouldReturnTeamInvalidException() {
+        TeamService teamService = mock(TeamService.class);
+        when(teamService.save(any()))
+                .thenThrow(new TeamInvalidException("Le slogan de l'équipe ne peut pas être null"));
+        given()
+                .body("{\"name\":\"Inter Milan\"}")
+                .contentType(ContentType.JSON)
+                .when()
+                .post("/teams")
+                .then()
+                .statusCode(400);
     }
 }

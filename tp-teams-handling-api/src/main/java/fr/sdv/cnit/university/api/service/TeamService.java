@@ -28,7 +28,10 @@ public class TeamService {
     }
 
     public Team save(Team team) {
-        return teamRepository.save(team);
+        if (team.getSlogan() != null) {
+            return teamRepository.save(team);
+        }
+        throw new TeamInvalidException("Le slogan de l'équipe ne peut pas être null");
     }
 
     public Team update(final Long id, Team modified) {
