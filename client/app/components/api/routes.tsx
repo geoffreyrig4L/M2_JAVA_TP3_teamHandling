@@ -17,3 +17,7 @@ export const addTeam = async (team: Team): Promise<AxiosResponse> => {
 export const deleteTeam = async (teamId: number): Promise<AxiosResponse> => {
   return await api().delete(`/teams/${teamId}`)
 }
+
+export const updateTeam = async (teamId: number, team: Team): Promise<AxiosResponse<Team>> => {
+  return await api().put(`/teams/${teamId}`, team)
+}

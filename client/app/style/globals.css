@@ -29,3 +29,13 @@ h1 {
   font-weight: 600;
   color: var(--background-color)
 }
+
+.inputInTeamPage {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    outline: none;
+    padding: 5px;
+    background-color: rgba(0, 0, 0, 0);
+    font-weight: 500;
+}
