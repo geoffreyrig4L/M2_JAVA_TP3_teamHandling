@@ -1,90 +1,117 @@
-// package fr.sdv.cnit.university.api.controller;
+package fr.sdv.cnit.university.api.controller;
 
-// import static org.hamcrest.Matchers.*;
-// import static org.junit.Assert.assertEquals;
-// import static org.junit.Assert.assertThat;
-// import static org.mockito.Mockito.*;
-// import org.hamcrest.CoreMatchers;
-// import org.junit.After;
-// import org.junit.Before;
-// import org.junit.Test;
-// import org.junit.runner.RunWith;
-// import org.mockito.ArgumentCaptor;
-// import org.mockito.Mock;
-// import org.mockito.junit.MockitoJUnitRunner;
+import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
+import static io.restassured.module.mockmvc.RestAssuredMockMvc.standaloneSetup;
+import static org.hamcrest.CoreMatchers.equalTo;
 
-// import java.util.List;
-// import java.util.Optional;
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.http.ResponseEntity;
-// import org.springframework.web.bind.annotation.DeleteMapping;
-// import org.springframework.web.bind.annotation.GetMapping;
-// import org.springframework.web.bind.annotation.PathVariable;
-// import org.springframework.web.bind.annotation.PostMapping;
-// import org.springframework.web.bind.annotation.PutMapping;
-// import org.springframework.web.bind.annotation.RequestBody;
-// import org.springframework.web.bind.annotation.RequestMapping;
-// import org.springframework.web.bind.annotation.RestController;
-// import fr.sdv.cnit.university.api.entity.Team;
-// import fr.sdv.cnit.university.api.service.TeamService;
+import java.util.stream.Stream;
 
-// @RunWith(MockitoJUnitRunner.class)
-// public class TeamControllerTest {
-// @Mock
-// private TeamService teamService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
 
-// private TeamController teamController;
+import fr.sdv.cnit.university.api.entity.Team;
+import fr.sdv.cnit.university.api.repository.TeamRepository;
+import fr.sdv.cnit.university.api.service.TeamService;
+import io.restassured.http.ContentType;
 
-// @Before
-// public void setup() {
-// this.teamController = new TeamController(teamService);
-// }
+@SpringBootTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
+class TeamControllerTest {
 
-// @Test
-// public void shouldGetAllTeams() {
-// List<Team> actualValue = teamController.getAllTeams();
+    @Autowired
+    TeamRepository teamRepository;
 
-// // TODO: assert scenario
-// }
+    @BeforeEach
+    void setUpRestAssured() {
+        TeamService teamService = new TeamService(teamRepository);
+        TeamController teamController = new TeamController(teamService);
+        standaloneSetup(teamController);
+    }
 
-// @Test
-// public void shouldGet() {
-// // TODO: initialize args
-// Long id;
+    @BeforeEach
+    void insertInH2() {
+        insertTeamInH2(1L, "Benfica", "Pas de concu");
+        insertTeamInH2(2L, "Brighton", "La victoire ou la mort !");
+        insertTeamInH2(3L, "Arsenal", "Perdre, c'est quoi ?");
+    }
 
-// ResponseEntity<Team> actualValue = teamController.get(id);
+    private void insertTeamInH2(Long id, String nom, String slogan) {
+        Team team = new Team();
+        team.setId(id);
+        team.setName(nom);
+        team.setSlogan(slogan);
+        teamRepository.save(team);
+    }
 
-// // TODO: assert scenario
-// }
+    @ParameterizedTest
+    @MethodSource("provideTeamsAttribute")
+    void shouldGetAllTeams(int id, String expectedName) {
+        given()
+                .when()
+                .get("/teams")
+                .then()
+                .statusCode(200)
+                .body("[" + id + "].name", equalTo(expectedName));
+    }
 
-// @Test
-// public void shouldCreate() {
-// // TODO: initialize args
-// Team teamToCreate;
+    private static Stream<Arguments> provideTeamsAttribute() {
+        return Stream.of(
+                Arguments.of(0, "Benfica"),
+                Arguments.of(1, "Brighton"),
+                Arguments.of(2, "Arsenal"));
+    }
 
-// ResponseEntity<Team> actualValue = teamController.create(teamToCreate);
+    @Test
+    void shouldGetTeam() {
+        given()
+                .when()
+                .get("/teams/2")
+                .then()
+                .statusCode(200)
+                .body("name", equalTo("Brighton"));
+    }
 
-// // TODO: assert scenario
-// }
+    @Test
+    void shouldNotGetTeam() {
+        given()
+                .when()
+                .get("/teams/50")
+                .then()
+                .statusCode(404);
+    }
 
-// @Test
-// public void shouldCreate() {
-// // TODO: initialize args
-// Long id;
-// Team teamModified;
+    @Test
+    void shouldPutTeam() {
+        given()
+                .body("{\"id\":2,\"name\":\"Manchester City\"}")
+                .contentType(ContentType.JSON)
+                .when()
+                .put("/teams/2")
+                .then()
+                .statusCode(200);
 
-// ResponseEntity<Team> actualValue = teamController.create(id, teamModified);
+        given()
+                .when()
+                .get("/teams/2")
+                .then()
+                .statusCode(200)
+                .body("name", equalTo("Manchester City"));
+    }
 
-// // TODO: assert scenario
-// }
-
-// @Test
-// public void shouldDelete() {
-// // TODO: initialize args
-// Long id;
-
-// ResponseEntity<String> actualValue = teamController.delete(id);
-
-// // TODO: assert scenario
-// }
-// }
+    @Test
+    void shouldDeleteTeam() {
+        given()
+                .contentType(ContentType.JSON)
+                .accept(ContentType.JSON)
+                .when()
+                .delete("/teams/3")
+                .then()
+                .statusCode(200);
+    }
+}
