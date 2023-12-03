@@ -16,7 +16,7 @@ const NavBar = (): JSX.Element => {
       })
     }
     void fetchTeams()
-  }, [])
+  })
 
   return (
     <nav className="absolute left-0 top-0 flex flex-col bg-menu-color w-[12%] min-w-[250px] h-full text-text-menu p-12 items-start space-y-6 border-r-[10px] border-secondary-color">

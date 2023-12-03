@@ -10,6 +10,10 @@ export const getTeam = async (teamId: number): Promise<AxiosResponse<Team>> => {
   return await api().get(`/teams/${teamId}`)
 }
 
-export const addTeam = async (team: Team): Promise<AxiosResponse<Team>> => {
+export const addTeam = async (team: Team): Promise<AxiosResponse> => {
   return await api().post("/teams", team)
+}
+
+export const deleteTeam = async (teamId: number): Promise<AxiosResponse> => {
+  return await api().delete(`/teams/${teamId}`)
 }
